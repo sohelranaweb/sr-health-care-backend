@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
-import { UserService } from "./user.service";
+
 import sendResponse from "../../../shared/sendResponse";
 import { userFilterableFields } from "./user.constant";
 import pick from "../../../helpers/pick";
 import httpStatus from "http-status";
 import { IAuthUser } from "../../interfaces/common";
+import { UserService } from "./user.service";
 
 const createPatient = catchAsync(async (req: Request, res: Response) => {
   const result = await UserService.createPatient(req);
@@ -69,35 +70,35 @@ const getMyProfile = catchAsync(
       message: "My profile data fetched!",
       data: result,
     });
-  }
+  },
 );
 
-// const changeProfileStatus = catchAsync(async (req: Request, res: Response) => {
-//   const { id } = req.params;
-//   const result = await UserService.changeProfileStatus(id, req.body);
+const changeProfileStatus = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await UserService.changeProfileStatus(id, req.body);
 
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Users profile status changed!",
-//     data: result,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Users profile status changed!",
+    data: result,
+  });
+});
 
-// const updateMyProfie = catchAsync(
-//   async (req: Request & { user?: IJwtPayload }, res: Response) => {
-//     const user = req.user;
-
-//     const result = await UserService.updateMyProfie(user as IJwtPayload, req);
-
-//     sendResponse(res, {
-//       statusCode: httpStatus.OK,
-//       success: true,
-//       message: "My profile updated!",
-//       data: result,
-//     });
-//   }
-// );
+const updateMyProfie = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
+    // console.log("req body", req.body);
+    const result = await UserService.updateMyProfie(user as IAuthUser, req);
+    // console.log("result", result);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "My profile updated!",
+      data: result,
+    });
+  },
+);
 
 export const UserController = {
   createPatient,
@@ -105,6 +106,6 @@ export const UserController = {
   createDoctor,
   getAllFromDB,
   getMyProfile,
-  // changeProfileStatus,
-  // updateMyProfie,
+  changeProfileStatus,
+  updateMyProfie,
 };

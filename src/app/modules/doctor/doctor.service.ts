@@ -1,14 +1,14 @@
 import { Doctor, Prisma, UserStatus } from "@prisma/client";
+import { askOpenRouter } from "../../../helpers/openRouterClient";
+import { paginationHelper } from "../../../helpers/paginationHelpers";
 import { IPaginationOptions } from "../../interfaces/pagination";
+import { doctorSearchableFields } from "./doctor.constant";
 import { IDoctorFilterRequest, IDoctorUpdate } from "./doctor.interface";
 import { prisma } from "../../../shared/prisma";
-import { doctorSearchableFields } from "./doctor.constant";
-import { paginationHelper } from "../../../helpers/paginationHelpers";
-import { askOpenRouter } from "../../../helpers/openRouterClient";
 
 const getAllFromDB = async (
   filters: IDoctorFilterRequest,
-  options: IPaginationOptions
+  options: IPaginationOptions,
 ) => {
   const { limit, page, skip } = paginationHelper.calculatePagination(options);
   const { searchTerm, specialties, ...filterData } = filters;
@@ -87,7 +87,7 @@ const getAllFromDB = async (
           schedule: true,
         },
       },
-      reviews: {
+      review: {
         select: {
           rating: true,
         },
@@ -128,20 +128,14 @@ const getByIdFromDB = async (id: string): Promise<Doctor | null> => {
           schedule: true,
         },
       },
-      reviews: true,
+      review: true,
     },
   });
   return result;
 };
 
 const updateIntoDB = async (id: string, payload: IDoctorUpdate) => {
-  const { specialties, removeSpecialties, doctorExpriences, ...doctorData } =
-    payload;
-  // ADD THESE CONSOLE LOGS
-  console.log("Original payload:", payload);
-  console.log("doctorExpriences:", doctorExpriences);
-  console.log("doctorData after destructuring:", doctorData);
-  console.log("doctorData keys:", Object.keys(doctorData));
+  const { specialties, removeSpecialties, ...doctorData } = payload;
 
   const doctorInfo = await prisma.doctor.findUniqueOrThrow({
     where: {
@@ -180,13 +174,13 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdate) => {
 
       if (existingDoctorSpecialties.length !== removeSpecialties.length) {
         const foundIds = existingDoctorSpecialties.map(
-          (ds) => ds.specialitiesId
+          (ds) => ds.specialitiesId,
         );
         const notFound = removeSpecialties.filter(
-          (id) => !foundIds.includes(id)
+          (id) => !foundIds.includes(id),
         );
         throw new Error(
-          `Cannot remove non-existent specialties: ${notFound.join(", ")}`
+          `Cannot remove non-existent specialties: ${notFound.join(", ")}`,
         );
       }
 
@@ -217,12 +211,12 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdate) => {
 
       const existingSpecialtyIds = existingSpecialties.map((s) => s.id);
       const invalidSpecialties = specialties.filter(
-        (id) => !existingSpecialtyIds.includes(id)
+        (id) => !existingSpecialtyIds.includes(id),
       );
 
       if (invalidSpecialties.length > 0) {
         throw new Error(
-          `Invalid specialty IDs: ${invalidSpecialties.join(", ")}`
+          `Invalid specialty IDs: ${invalidSpecialties.join(", ")}`,
         );
       }
 
@@ -241,10 +235,10 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdate) => {
         });
 
       const currentSpecialtyIds = currentDoctorSpecialties.map(
-        (ds) => ds.specialitiesId
+        (ds) => ds.specialitiesId,
       );
       const newSpecialties = specialties.filter(
-        (id) => !currentSpecialtyIds.includes(id)
+        (id) => !currentSpecialtyIds.includes(id),
       );
 
       // Only create new specialties that don't already exist
@@ -259,12 +253,6 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdate) => {
         });
       }
     }
-
-    if (doctorExpriences) {
-      await transactionClient.doctorExperiences.create({
-        data: { ...doctorExpriences, doctorId: doctorInfo.id },
-      });
-    }
   });
 
   // Step 4: Return updated doctor with specialties
@@ -278,7 +266,6 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdate) => {
           specialities: true,
         },
       },
-      doctorExperiences: true,
     },
   });
 
@@ -337,7 +324,7 @@ const getAISuggestion = async (input: PatientInput) => {
       doctorSpecialties: {
         include: { specialities: true },
       },
-      reviews: { select: { rating: true } },
+      review: { select: { rating: true } },
     },
   });
 
@@ -476,7 +463,7 @@ RESPOND WITH ONLY THE JSON ARRAY - NO EXPLANATIONS, NO MARKDOWN, NO EXTRA TEXT.
 
 const getAllPublic = async (
   filters: IDoctorFilterRequest,
-  options: IPaginationOptions
+  options: IPaginationOptions,
 ) => {
   const { limit, page, skip } = paginationHelper.calculatePagination(options);
   const { searchTerm, specialties, ...filterData } = filters;
@@ -561,7 +548,7 @@ const getAllPublic = async (
           specialities: true,
         },
       },
-      reviews: {
+      review: {
         select: {
           rating: true,
           comment: true,

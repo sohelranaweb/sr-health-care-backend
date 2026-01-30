@@ -42,6 +42,7 @@ CREATE TABLE "payments" (
     "transactionId" TEXT NOT NULL,
     "status" "PaymentStatus" NOT NULL DEFAULT 'UNPAID',
     "paymentGatewayData" JSONB,
+    "stripeEventId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -74,6 +75,44 @@ CREATE TABLE "reviews" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "reviews_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "patient_health_datas" (
+    "id" TEXT NOT NULL,
+    "patientId" TEXT NOT NULL,
+    "gender" "Gender" NOT NULL,
+    "dateOfBirth" TEXT NOT NULL,
+    "bloodGroup" "BloodGroup" NOT NULL,
+    "hasAllergies" BOOLEAN DEFAULT false,
+    "hasDiabetes" BOOLEAN DEFAULT false,
+    "height" TEXT NOT NULL,
+    "weight" TEXT NOT NULL,
+    "smokingStatus" BOOLEAN DEFAULT false,
+    "dietaryPreferences" TEXT,
+    "pregnancyStatus" BOOLEAN DEFAULT false,
+    "mentalHealthHistory" TEXT,
+    "immunizationStatus" TEXT,
+    "hasPastSurgeries" BOOLEAN DEFAULT false,
+    "recentAnxiety" BOOLEAN DEFAULT false,
+    "recentDepression" BOOLEAN DEFAULT false,
+    "maritalStatus" "MaritalStatus" NOT NULL DEFAULT 'UNMARRIED',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "patient_health_datas_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "madical_reports" (
+    "id" TEXT NOT NULL,
+    "patientId" TEXT NOT NULL,
+    "reportName" TEXT NOT NULL,
+    "reportLink" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "madical_reports_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -118,24 +157,6 @@ CREATE TABLE "doctor_specialties" (
 );
 
 -- CreateTable
-CREATE TABLE "symptoms" (
-    "id" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "icon" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-
-    CONSTRAINT "symptoms_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "doctor_symptoms" (
-    "symptomsId" TEXT NOT NULL,
-    "doctorId" TEXT NOT NULL,
-
-    CONSTRAINT "doctor_symptoms_pkey" PRIMARY KEY ("symptomsId","doctorId")
-);
-
--- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -164,44 +185,22 @@ CREATE TABLE "admins" (
 );
 
 -- CreateTable
-CREATE TABLE "super_admins" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "profilePhoto" TEXT,
-    "contactNumber" TEXT,
-    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "super_admins_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "doctors" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "profilePhoto" TEXT,
-    "contactNumber" TEXT,
+    "contactNumber" TEXT NOT NULL,
     "address" TEXT,
-    "registrationNumber" TEXT,
+    "registrationNumber" TEXT NOT NULL,
     "experience" INTEGER NOT NULL DEFAULT 0,
-    "gender" "Gender",
-    "appointmentFee" INTEGER,
-    "followUpFee" INTEGER,
-    "qualification" TEXT,
-    "currentWorkingPlace" TEXT,
+    "gender" "Gender" NOT NULL,
+    "appointmentFee" INTEGER NOT NULL,
+    "qualification" TEXT NOT NULL,
+    "currentWorkingPlace" TEXT NOT NULL,
+    "designation" TEXT NOT NULL,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-    "about" TEXT,
-    "patientAttended" INTEGER NOT NULL DEFAULT 0,
-    "avgConsultationTime" INTEGER NOT NULL DEFAULT 20,
-    "InstitutionName" TEXT,
-    "designation" TEXT,
-    "department" TEXT,
-    "period" INTEGER,
-    "startDate" TEXT,
-    "endDate" TEXT,
+    "averageRating" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -230,10 +229,16 @@ CREATE UNIQUE INDEX "payments_appointmentId_key" ON "payments"("appointmentId");
 CREATE UNIQUE INDEX "payments_transactionId_key" ON "payments"("transactionId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "payments_stripeEventId_key" ON "payments"("stripeEventId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "prescriptions_appointmentId_key" ON "prescriptions"("appointmentId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "reviews_appointmentId_key" ON "reviews"("appointmentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "patient_health_datas_patientId_key" ON "patient_health_datas"("patientId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "doctor_schedules_appointmentId_key" ON "doctor_schedules"("appointmentId");
@@ -243,9 +248,6 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "admins_email_key" ON "admins"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "super_admins_email_key" ON "super_admins"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "doctors_email_key" ON "doctors"("email");
@@ -284,6 +286,12 @@ ALTER TABLE "reviews" ADD CONSTRAINT "reviews_doctorId_fkey" FOREIGN KEY ("docto
 ALTER TABLE "reviews" ADD CONSTRAINT "reviews_appointmentId_fkey" FOREIGN KEY ("appointmentId") REFERENCES "appointments"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "patient_health_datas" ADD CONSTRAINT "patient_health_datas_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "patients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "madical_reports" ADD CONSTRAINT "madical_reports_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "patients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "doctor_schedules" ADD CONSTRAINT "doctor_schedules_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "doctors"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -299,16 +307,7 @@ ALTER TABLE "doctor_specialties" ADD CONSTRAINT "doctor_specialties_specialities
 ALTER TABLE "doctor_specialties" ADD CONSTRAINT "doctor_specialties_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "doctors"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "doctor_symptoms" ADD CONSTRAINT "doctor_symptoms_symptomsId_fkey" FOREIGN KEY ("symptomsId") REFERENCES "symptoms"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "doctor_symptoms" ADD CONSTRAINT "doctor_symptoms_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "doctors"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "admins" ADD CONSTRAINT "admins_email_fkey" FOREIGN KEY ("email") REFERENCES "users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "super_admins" ADD CONSTRAINT "super_admins_email_fkey" FOREIGN KEY ("email") REFERENCES "users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "doctors" ADD CONSTRAINT "doctors_email_fkey" FOREIGN KEY ("email") REFERENCES "users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -13,7 +13,7 @@ import { IPaginationOptions } from "../../interfaces/pagination";
 
 const insertIntoDB = async (
   user: IAuthUser,
-  payload: Partial<Prescription>
+  payload: Partial<Prescription>,
 ) => {
   const appointmentData = await prisma.appointment.findUniqueOrThrow({
     where: {
@@ -44,6 +44,7 @@ const insertIntoDB = async (
   //   });
 
   // Use transaction to create prescription and update doctor
+
   const result = await prisma.$transaction(async (tx) => {
     // Create prescription
     const prescription = await tx.prescription.create({
@@ -60,16 +61,16 @@ const insertIntoDB = async (
     });
 
     // Increment patientAttended for the doctor
-    await tx.doctor.update({
-      where: {
-        id: appointmentData.doctorId,
-      },
-      data: {
-        patientAttended: {
-          increment: 1,
-        },
-      },
-    });
+    // await tx.doctor.update({
+    //   where: {
+    //     id: appointmentData.doctorId,
+    //   },
+    //   data: {
+    //     patientAttended: {
+    //       increment: 1,
+    //     },
+    //   },
+    // });
 
     return prescription;
   });
@@ -79,7 +80,7 @@ const insertIntoDB = async (
 
 const patientPrescription = async (
   user: IAuthUser,
-  options: IPaginationOptions
+  options: IPaginationOptions,
 ) => {
   const { limit, page, skip } = paginationHelper.calculatePagination(options);
 

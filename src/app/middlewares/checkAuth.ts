@@ -8,7 +8,7 @@ const checkAuth = (...roles: string[]) => {
   return async (
     req: Request & { user?: any },
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const token = req.cookies.accessToken;

@@ -17,6 +17,9 @@ const create = z.object({
     registrationNumber: z.string({
       error: "Registration Number is required",
     }),
+    experience: z.number({
+      error: "Experience is required",
+    }),
     gender: z.string({
       error: "Gender is required",
     }),
@@ -41,23 +44,15 @@ const update = z.object({
     profilePhoto: z.string().optional(),
     contactNumber: z.string().optional(),
     registrationNumber: z.string().optional(),
+    experience: z.number().optional(),
     gender: z.string().optional(),
     appointmentFee: z.number().optional(),
     qualification: z.string().optional(),
     currentWorkingPlace: z.string().optional(),
+    designation: z.string().optional(),
     // NEW: Add specialties management
     specialties: z.array(z.uuid()).optional(),
     removeSpecialties: z.array(z.uuid()).optional(),
-    // Doctor experiences validation
-    doctorExperiences: z
-      .object({
-        instituteName: z.string().optional(),
-        designation: z.string().optional(),
-        department: z.string().optional(),
-        startDate: z.string().optional(),
-        endDate: z.string().optional(),
-      })
-      .optional(),
   }),
 });
 
