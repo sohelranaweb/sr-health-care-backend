@@ -17,8 +17,8 @@ app.post(
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
       "https://sr-health-care-frontend-fb4g.vercel.app",
+      // "http://localhost:3000",
     ],
     credentials: true,
   }),
