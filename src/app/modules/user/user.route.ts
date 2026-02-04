@@ -28,7 +28,7 @@ router.get(
 
 router.post(
   "/create-admin",
-  checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  checkAuth(UserRole.SUPER_ADMIN),
   fileUploader.upload.single("file"),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = userValidation.createAdmin.parse(JSON.parse(req.body.data));
