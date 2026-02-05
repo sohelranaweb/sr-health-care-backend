@@ -90,10 +90,10 @@ const createAppointment = async (user: IAuthUser, payload: any) => {
         paymentId: paymentData.id,
       },
       success_url: `${
-        process.env.FRONTEND_URL || "http://localhost:3000"
+        process.env.FRONTEND_URL || "https://sr-health-care-frontend.vercel.app"
       }/payment/success`,
       cancel_url: `${
-        process.env.FRONTEND_URL || "http://localhost:3000"
+        process.env.FRONTEND_URL || "https://sr-health-care-frontend.vercel.app"
       }/dashboard/my-appointments`,
     });
     //     console.log("payment_url", session.url);
