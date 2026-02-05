@@ -494,12 +494,10 @@ const initiatePaymentForAppointment = async (
       paymentId: appointment.payment!.id,
     },
     success_url: `${
-      process.env.FRONTEND_URL ||
-      "https://sr-health-care-frontend-fb4g.vercel.app"
+      process.env.FRONTEND_URL || "https://sr-health-care-frontend.vercel.app"
     }/payment/success`,
     cancel_url: `${
-      process.env.FRONTEND_URL ||
-      "https://sr-health-care-frontend-fb4g.vercel.app"
+      process.env.FRONTEND_URL || "https://sr-health-care-frontend.vercel.app"
     }/dashboard/my-appointments`,
   });
 
