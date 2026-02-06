@@ -43,3 +43,8 @@ enum MaritalStatus {
         MARRIED
         UNMARRIED
 }
+
+enum AuthAction {
+        LOGIN
+        LOGOUT
+}

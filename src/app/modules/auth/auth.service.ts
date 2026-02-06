@@ -37,6 +37,7 @@ const login = async (payload: { email: string; password: string }) => {
     config.jwt.refresh_token_expires_in as string,
   );
   return {
+    user,
     accessToken,
     refreshToken,
     needPasswordChange: user.needPasswordChange,
@@ -362,6 +363,24 @@ const forgotPassword = async (payload: { email: string }) => {
   );
 };
 
+const getAuthLogs = async () => {
+  const logsData = await prisma.authLog.findMany({
+    include: {
+      user: {
+        select: {
+          email: true, // your existing User field
+          role: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return logsData;
+};
+
 export const AuthService = {
   login,
   getMe,
@@ -369,4 +388,5 @@ export const AuthService = {
   changePassword,
   resetPassword,
   forgotPassword,
+  getAuthLogs,
 };

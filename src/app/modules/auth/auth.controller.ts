@@ -6,6 +6,7 @@ import httpStatus from "http-status";
 import config from "../../../config";
 import { IAuthUser } from "../../interfaces/common";
 import ApiError from "../../errors/ApiError";
+import { prisma } from "../../../shared/prisma";
 
 const login = catchAsync(async (req: Request, res: Response) => {
   const accessTokenExpiresIn = config.jwt.expires_in as string;
@@ -54,9 +55,17 @@ const login = catchAsync(async (req: Request, res: Response) => {
     refreshTokenMaxAge = 1000 * 60 * 60 * 24 * 30; // default 30 days
   }
   const result = await AuthService.login(req.body);
-  const { accessToken, refreshToken, needPasswordChange } = result;
-
+  const { user, accessToken, refreshToken, needPasswordChange } = result;
   // console.log({ accessToken, refreshToken });
+
+  // ✅ Track login event
+  await prisma.authLog.create({
+    data: {
+      userId: user.id,
+      action: "LOGIN",
+    },
+  });
+
   res.cookie("accessToken", accessToken, {
     secure: true,
     httpOnly: true,
@@ -178,7 +187,7 @@ const changePassword = catchAsync(
 
     const result = await AuthService.changePassword(
       user as IAuthUser,
-      req.body
+      req.body,
     );
 
     sendResponse(res, {
@@ -187,7 +196,7 @@ const changePassword = catchAsync(
       message: "Password Changed successfully",
       data: result,
     });
-  }
+  },
 );
 const resetPassword = catchAsync(
   async (req: Request & { user?: any }, res: Response) => {
@@ -205,7 +214,7 @@ const resetPassword = catchAsync(
       message: "Password Reset!",
       data: null,
     });
-  }
+  },
 );
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   await AuthService.forgotPassword(req.body);
@@ -217,6 +226,18 @@ const forgotPassword = catchAsync(async (req: Request, res: Response) => {
     data: null,
   });
 });
+
+const getAuthLogs = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.getAuthLogs();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "AuthLog user's data retrieved successfully!",
+    data: result,
+  });
+});
+
 export const AuthController = {
   login,
   getMe,
@@ -224,4 +245,5 @@ export const AuthController = {
   changePassword,
   resetPassword,
   forgotPassword,
+  getAuthLogs,
 };

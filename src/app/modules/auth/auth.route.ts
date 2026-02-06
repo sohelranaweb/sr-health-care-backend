@@ -6,7 +6,11 @@ import { UserRole } from "@prisma/client";
 const router = express.Router();
 
 router.get("/me", AuthController.getMe);
-
+router.get(
+  "/auth-logs",
+  checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  AuthController.getAuthLogs,
+);
 router.post("/login", AuthController.login);
 router.post("/refresh-token", AuthController.refreshToken);
 router.post(
@@ -15,9 +19,9 @@ router.post(
     UserRole.SUPER_ADMIN,
     UserRole.ADMIN,
     UserRole.DOCTOR,
-    UserRole.PATIENT
+    UserRole.PATIENT,
   ),
-  AuthController.changePassword
+  AuthController.changePassword,
 );
 router.post("/forgot-password", AuthController.forgotPassword);
 router.post(
@@ -31,14 +35,14 @@ router.post(
         UserRole.SUPER_ADMIN,
         UserRole.ADMIN,
         UserRole.DOCTOR,
-        UserRole.PATIENT
+        UserRole.PATIENT,
       )(req, res, next);
     } else {
       //user is resetting password via email link with token
       next();
     }
   },
-  AuthController.resetPassword
+  AuthController.resetPassword,
 );
 
 export const authRoutes = router;

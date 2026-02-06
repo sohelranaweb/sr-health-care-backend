@@ -1,0 +1,8 @@
+model AuthLog {
+        id        String     @id @default(uuid())
+        userId    String
+        action    AuthAction
+        createdAt DateTime   @default(now())
+
+        user User @relation(fields: [userId], references: [id])
+}
